@@ -1,0 +1,106 @@
+There's a new lcc, v1.9
+
+changes/improvements:
+with -d0, warns about switch statements with huge jump tables, eg,
+switch (i) { case INT_MAX: ...; case INT_MIN: ... }
+
+now accepts identifiers up to 4096 characters long, although the ANSI
+standard requires that only the first 31 be examined.
+
+returning a pointer to a local variable now elicits a warning
+instead of an error.
+
+now warns about eliding references to incomplete types, eg,
+void *x; *x;
+
+with -A -A, now warns when declaring arrays incomplete types,
+eg, extern struct s x[];
+
+offsetof is less machine-specific but equivalent to the old one.
+
+On the MIPS, uses fewer of the assembler's pseudo-ops.  The assembly
+code looks longer, but it should generate about the same machine code.
+
+On the MIPS, a few stack frames may be larger, to enforce stricter
+alignment for the R4000.
+
+errors fixed:
+with -n, failed to recognize expressions that dereferenced constant
+pointers as valid constant expressions, eg,
+struct foo { int a, b; };
+unsigned off = (char *)&((struct foo *)0)->b - (char *)0;
+
+generated bad code for some inputs for which the compiler needed
+numerous temporaries.
+
+failed to accept function definitions with multiple top-level
+prototypes, eg, int (*g(int c))(char) { c = 0; }
+
+failed to warn about overflow in enumeration values, eg,
+enum { X = ~0U };
+
+ignored trailing characters of long file names in some "#" lines, which
+caused erroneous diagnostics. now accepts names upto 512 characters, and
+warns about longer ones.
+
+erroneously made enumerations visible before their optional values, eg,
+enum{A=2}; f() { enum {A=A} i = A; } assigned 0 to i instead of 2.
+
+exited with a code of 0 instead of 1 when there was exactly one
+"found X expecting Y" diagnostic.
+
+failed to detect overflow in hex character constants, eg, '\x100000000'.
+
+failed to accept assignment of 0U to pointers.
+
+failed to associate tags defined in a parameter list with defining
+declarations inside a function, eg,
+f(struct S *s) { struct S { int a; }; s->a = 1; }
+
+failed to reject function definitions with storage class typedef.
+
+failed to accept a trailing `,' in initializers for scalars
+and unions, eg, int x = {1,};
+
+erroneously defined wchar_t as `char' instead of `unsigned char';
+L'\xff' must have the integer value 0xff.
+
+failed to reject type `array of void'.
+
+failed to reject comparing a pointer to an object type
+with a pointer to an incomplete type, eg,
+extern int (*a)[],(*b)[10]; ...; if (a == b) ...
+
+failed to warn about comparing a function pointer with a void*,
+eg, int (*fp)(); ... if (fp == (void *)0) ...
+
+failed to reject (..., 0) as a null pointer constant.
+
+failed to accept redeclaration of functions with differently
+qualified parameters, eg, f(int); f(const int);
+
+on the SPARC, under -b, exit() failed to close all open files.
+
+on the MIPS, generated bad code for calls to variadic functions
+with a leading floating argument (eg, f(double x,...)) when
+the 2nd actual argument was a float or a double.
+
+
+4/4/92:
+
+changes/improvements:
+The driver, lcc, no longer ignores extra characters after options, eg,
+it used to treat -cg like -c; now -c and -cg are distinct options.  As
+always, unrecognized options are passed to the linker unless -c, -S, or
+-E has been previously specified.
+
+Now recognizes the identity u/1U == u for unsigned u.
+
+errors fixed:
+-A -A now correctly complains about switch statements with more than
+257 cases instead of 127.
+
+on the SPARC, generated bad code for calls with a floating-point
+argument followed anywhere by an argument involving an integer or
+unsigned division, multiplication, or modulus, eg,
+int i,j; f() { f(1.0,i/j); }
